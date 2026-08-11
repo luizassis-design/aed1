@@ -1,2 +1,2 @@
 # aed1
-exercios de disciplina de AED1
+exercícios de disciplina de AED1
