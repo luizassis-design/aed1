@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 typedef struct pessoa {
-    char nome[20];
+    char nome[50];
     int idade;
     char cpf[12];
     char rg[20];
