@@ -3,287 +3,287 @@
 #include <time.h>
 #include <math.h>
 
-#define LARGURA_JANELA  800
-#define ALTURA_JANELA   600
-#define RAIO_JOGADOR    20.0f
-#define MAX_ENTIDADES   30
-#define TOTAL_INIMIGOS  5
-#define TOTAL_ITENS     6
+#define LARGURA_JANELA 800
+#define ALTURA_JANELA 600
+#define RAIO_JOGADOR 20.0f
+#define MAX_ENTIDADES 30
+#define TOTAL_INIMIGOS 5
+#define TOTAL_ITENS 6
 
 typedef enum {
-    ENTIDADE_JOGADOR,
-    ENTIDADE_INIMIGO,
-    ENTIDADE_ITEM
+    ENTIDADE_JOGADOR,
+    ENTIDADE_INIMIGO,
+    ENTIDADE_ITEM
 } TipoEntidade;
 
 typedef union {
-    int dano;
-    int valor;
+    int dano;
+    int valor;
 } ExtraEntidade;
 
 typedef struct {
-    TipoEntidade  tipo;
-    Vector2       pos;
-    float         raio;
-    int           vida;
-    Color         cor;
-    ExtraEntidade extra;
+    TipoEntidade tipo;
+    Vector2 pos;
+    float raio;
+    int vida;
+    Color cor;
+    ExtraEntidade extra;
 } Entidade;
 
 Entidade *vetorEntidades[MAX_ENTIDADES];
 int totalEntidades = 0;
 
 Entidade *criarEntidade(TipoEntidade tipo, Vector2 pos) {
-    Entidade *e = (Entidade *)malloc(sizeof(Entidade));
-    if (e == NULL) return NULL;
+    Entidade *e = (Entidade *)malloc(sizeof(Entidade));
+    if (e == NULL) return NULL;
 
-    e->tipo = tipo;
-    e->pos = pos;
-    e->raio = (tipo == ENTIDADE_JOGADOR) ? RAIO_JOGADOR
-             : (tipo == ENTIDADE_INIMIGO) ? 15.0f : 8.0f;
+    e->tipo = tipo;
+    e->pos = pos;
+    e->raio = (tipo == ENTIDADE_JOGADOR) ? RAIO_JOGADOR
+             : (tipo == ENTIDADE_INIMIGO) ? 15.0f : 8.0f;
 
-    switch (tipo) {
-        case ENTIDADE_JOGADOR:
-            e->vida = 100;
-            e->cor = BLUE;
-            break;
+    switch (tipo) {
+        case ENTIDADE_JOGADOR:
+            e->vida = 100;
+            e->cor = BLUE;
+            break;
 
-        case ENTIDADE_INIMIGO:
-            e->vida = 40;
-            e->cor = MAROON;
-            e->extra.dano = GetRandomValue(5, 15);
-            break;
+        case ENTIDADE_INIMIGO:
+            e->vida = 40;
+            e->cor = MAROON;
+            e->extra.dano = GetRandomValue(5, 15);
+            break;
 
-        case ENTIDADE_ITEM:
-            e->vida = 1;
-            e->cor = GOLD;
-            e->extra.valor = GetRandomValue(5, 20);
-            break;
-    }
+        case ENTIDADE_ITEM:
+            e->vida = 1;
+            e->cor = GOLD;
+            e->extra.valor = GetRandomValue(5, 20);
+            break;
+    }
 
-    return e;
+    return e;
 }
 
 void adicionarEntidade(Entidade *e) {
-    if (e == NULL || totalEntidades >= MAX_ENTIDADES) return;
+    if (e == NULL || totalEntidades >= MAX_ENTIDADES) return;
 
-    vetorEntidades[totalEntidades] = e;
-    totalEntidades++;
+    vetorEntidades[totalEntidades] = e;
+    totalEntidades++;
 }
 
 void removerEntidade(int indice) {
-    if (indice < 0 || indice >= totalEntidades) return;
+    if (indice < 0 || indice >= totalEntidades) return;
 
-    free(vetorEntidades[indice]);
-    vetorEntidades[indice] = vetorEntidades[totalEntidades - 1];
-    totalEntidades--;
+    free(vetorEntidades[indice]);
+    vetorEntidades[indice] = vetorEntidades[totalEntidades - 1];
+    totalEntidades--;
 }
 
 bool colidiu(Entidade *a, Entidade *b) {
-    float dx = a->pos.x - b->pos.x;
-    float dy = a->pos.y - b->pos.y;
-    float distancia = sqrtf(dx * dx + dy * dy);
+    float dx = a->pos.x - b->pos.x;
+    float dy = a->pos.y - b->pos.y;
+    float distancia = sqrtf(dx * dx + dy * dy);
 
-    return distancia <= (a->raio + b->raio);
+    return distancia <= (a->raio + b->raio);
 }
 
 void ordenarPorDistancia(Entidade *jogador) {
-    for (int i = 1; i < totalEntidades - 1; i++) {
-        int menor = i;
+    for (int i = 1; i < totalEntidades; i++) {
+        int menor = i;
 
-        float dx = vetorEntidades[menor]->pos.x - jogador->pos.x;
-        float dy = vetorEntidades[menor]->pos.y - jogador->pos.y;
-        float menorDistancia = sqrtf(dx * dx + dy * dy);
+        float dx = vetorEntidades[menor]->pos.x - jogador->pos.x;
+        float dy = vetorEntidades[menor]->pos.y - jogador->pos.y;
+        float menorDistancia = sqrtf(dx * dx + dy * dy);
 
-        for (int j = i + 1; j < totalEntidades; j++) {
-            dx = vetorEntidades[j]->pos.x - jogador->pos.x;
-            dy = vetorEntidades[j]->pos.y - jogador->pos.y;
+        for (int j = i + 1; j < totalEntidades; j++) {
+            dx = vetorEntidades[j]->pos.x - jogador->pos.x;
+            dy = vetorEntidades[j]->pos.y - jogador->pos.y;
 
-            float distancia = sqrtf(dx * dx + dy * dy);
+            float distancia = sqrtf(dx * dx + dy * dy);
 
-            if (distancia < menorDistancia) {
-                menor = j;
-                menorDistancia = distancia;
-            }
-        }
+            if (distancia < menorDistancia) {
+                menor = j;
+                menorDistancia = distancia;
+            }
+        }
 
-        if (menor != i) {
-            Entidade *tmp = vetorEntidades[i];
-            vetorEntidades[i] = vetorEntidades[menor];
-            vetorEntidades[menor] = tmp;
-        }
-    }
+        if (menor != i) {
+            Entidade *tmp = vetorEntidades[i];
+            vetorEntidades[i] = vetorEntidades[menor];
+            vetorEntidades[menor] = tmp;
+        }
+    }
 }
 
 void desenharEntidade(Entidade *e) {
-    DrawCircleV(e->pos, e->raio, e->cor);
+    DrawCircleV(e->pos, e->raio, e->cor);
 
-    if (e->tipo == ENTIDADE_INIMIGO) {
-        DrawText(
-            TextFormat("%d", e->vida),
-            e->pos.x - 8,
-            e->pos.y - 26,
-            14,
-            BLACK
-        );
-    }
+    if (e->tipo == ENTIDADE_INIMIGO) {
+        DrawText(
+            TextFormat("%d", e->vida),
+            e->pos.x - 8,
+            e->pos.y - 26,
+            14,
+            BLACK
+        );
+    }
 }
 
 int main(void) {
-    srand((unsigned int)time(NULL));
+    srand((unsigned int)time(NULL));
 
-    InitWindow(
-        LARGURA_JANELA,
-        ALTURA_JANELA,
-        "Atividade 5 - Vetor de Ponteiros para Struct"
-    );
+    InitWindow(
+        LARGURA_JANELA,
+        ALTURA_JANELA,
+        "Atividade 5 - Vetor de Ponteiros para Struct"
+    );
 
-    SetTargetFPS(60);
+    SetTargetFPS(60);
 
-    Entidade *jogador = criarEntidade(
-        ENTIDADE_JOGADOR,
-        (Vector2){
-            LARGURA_JANELA / 2.0f,
-            ALTURA_JANELA / 2.0f
-        }
-    );
+    Entidade *jogador = criarEntidade(
+        ENTIDADE_JOGADOR,
+        (Vector2){
+            LARGURA_JANELA / 2.0f,
+            ALTURA_JANELA / 2.0f
+        }
+    );
 
-    adicionarEntidade(jogador);
+    adicionarEntidade(jogador);
 
-    for (int i = 0; i < TOTAL_INIMIGOS; i++) {
-        Vector2 pos = {
-            GetRandomValue(30, LARGURA_JANELA - 30),
-            GetRandomValue(30, ALTURA_JANELA - 30)
-        };
+    for (int i = 0; i < TOTAL_INIMIGOS; i++) {
+        Vector2 pos = {
+            GetRandomValue(30, LARGURA_JANELA - 30),
+            GetRandomValue(30, ALTURA_JANELA - 30)
+        };
 
-        adicionarEntidade(
-            criarEntidade(ENTIDADE_INIMIGO, pos)
-        );
-    }
+        adicionarEntidade(
+            criarEntidade(ENTIDADE_INIMIGO, pos)
+        );
+    }
 
-    for (int i = 0; i < TOTAL_ITENS; i++) {
-        Vector2 pos = {
-            GetRandomValue(30, LARGURA_JANELA - 30),
-            GetRandomValue(30, ALTURA_JANELA - 30)
-        };
+    for (int i = 0; i < TOTAL_ITENS; i++) {
+        Vector2 pos = {
+            GetRandomValue(30, LARGURA_JANELA - 30),
+            GetRandomValue(30, ALTURA_JANELA - 30)
+        };
 
-        adicionarEntidade(
-            criarEntidade(ENTIDADE_ITEM, pos)
-        );
-    }
+        adicionarEntidade(
+            criarEntidade(ENTIDADE_ITEM, pos)
+        );
+    }
 
-    int pontuacao = 0;
+    int pontuacao = 0;
 
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose()) {
 
-        float vel = 250.0f * GetFrameTime();
+        float vel = 250.0f * GetFrameTime();
 
-        if (IsKeyDown(KEY_RIGHT))
-            jogador->pos.x += vel;
+        if (IsKeyDown(KEY_RIGHT))
+            jogador->pos.x += vel;
 
-        if (IsKeyDown(KEY_LEFT))
-            jogador->pos.x -= vel;
+        if (IsKeyDown(KEY_LEFT))
+            jogador->pos.x -= vel;
 
-        if (IsKeyDown(KEY_UP))
-            jogador->pos.y -= vel;
+        if (IsKeyDown(KEY_UP))
+            jogador->pos.y -= vel;
 
-        if (IsKeyDown(KEY_DOWN))
-            jogador->pos.y += vel;
+        if (IsKeyDown(KEY_DOWN))
+            jogador->pos.y += vel;
 
-        ordenarPorDistancia(jogador);
+        ordenarPorDistancia(jogador);
 
-        for (int i = 1; i < totalEntidades; i++) {
-            Entidade *e = vetorEntidades[i];
+        for (int i = 1; i < totalEntidades; i++) {
+            Entidade *e = vetorEntidades[i];
 
-            if (!colidiu(jogador, e))
-                continue;
+            if (!colidiu(jogador, e))
+                continue;
 
-            if (e->tipo == ENTIDADE_ITEM) {
-                pontuacao += e->extra.valor;
-                removerEntidade(i);
-                i--;
-            }
-            else if (e->tipo == ENTIDADE_INIMIGO) {
-                jogador->vida -= e->extra.dano;
+            if (e->tipo == ENTIDADE_ITEM) {
+                pontuacao += e->extra.valor;
+                removerEntidade(i);
+                i--;
+            }
+            else if (e->tipo == ENTIDADE_INIMIGO) {
+                jogador->vida -= e->extra.dano;
 
-                if (jogador->vida < 0)
-                    jogador->vida = 0;
-            }
-        }
+                if (jogador->vida < 0)
+                    jogador->vida = 0;
+            }
+        }
 
-        if (IsKeyPressed(KEY_SPACE)) {
-            for (int i = 1; i < totalEntidades; i++) {
-                Entidade *e = vetorEntidades[i];
+        if (IsKeyPressed(KEY_SPACE)) {
+            for (int i = 1; i < totalEntidades; i++) {
+                Entidade *e = vetorEntidades[i];
 
-                if (e->tipo != ENTIDADE_INIMIGO)
-                    continue;
+                if (e->tipo != ENTIDADE_INIMIGO)
+                    continue;
 
-                if (!colidiu(jogador, e) && e->raio > 0) {
-                    e->vida -= 20;
+                if (!colidiu(jogador, e) && e->raio > 0) {
+                    e->vida -= 20;
 
-                    if (e->vida <= 0) {
-                        removerEntidade(i);
-                    }
+                    if (e->vida <= 0) {
+                        removerEntidade(i);
+                    }
 
-                    break;
-                }
-            }
-        }
+                    break;
+                }
+            }
+        }
 
-        if (IsKeyPressed(KEY_N)) {
-            if (totalEntidades < MAX_ENTIDADES) {
-                Vector2 pos = {
-                    GetRandomValue(30, LARGURA_JANELA - 30),
-                    GetRandomValue(30, ALTURA_JANELA - 30)
-                };
+        if (IsKeyPressed(KEY_N)) {
+            if (totalEntidades < MAX_ENTIDADES) {
+                Vector2 pos = {
+                    GetRandomValue(30, LARGURA_JANELA - 30),
+                    GetRandomValue(30, ALTURA_JANELA - 30)
+                };
 
-                adicionarEntidade(
-                    criarEntidade(ENTIDADE_ITEM, pos)
-                );
-            }
-        }
+                adicionarEntidade(
+                    criarEntidade(ENTIDADE_ITEM, pos)
+                );
+            }
+        }
 
-        BeginDrawing();
+        BeginDrawing();
 
-            ClearBackground(RAYWHITE);
+            ClearBackground(RAYWHITE);
 
-            for (int i = 0; i < totalEntidades; i++) {
-                desenharEntidade(vetorEntidades[i]);
-            }
+            for (int i = 0; i < totalEntidades; i++) {
+                desenharEntidade(vetorEntidades[i]);
+            }
 
-            DrawText(
-                TextFormat(
-                    "Vida: %d   Pontuacao: %d",
-                    jogador->vida,
-                    pontuacao
-                ),
-                10, 10, 22, DARKGRAY
-            );
+            DrawText(
+                TextFormat(
+                    "Vida: %d   Pontuacao: %d",
+                    jogador->vida,
+                    pontuacao
+                ),
+                10, 10, 22, DARKGRAY
+            );
 
-            DrawText(
-                TextFormat(
-                    "Entidades ativas: %d",
-                    totalEntidades
-                ),
-                10, 34, 18, GRAY
-            );
+            DrawText(
+                TextFormat(
+                    "Entidades ativas: %d",
+                    totalEntidades
+                ),
+                10, 34, 18, GRAY
+            );
 
-            DrawText(
-                "Setas movem | ESPACO atira | N cria item | ESC sai",
-                10,
-                ALTURA_JANELA - 25,
-                16,
-                GRAY
-            );
+            DrawText(
+                "Setas movem | ESPACO atira | N cria item | ESC sai",
+                10,
+                ALTURA_JANELA - 25,
+                16,
+                GRAY
+            );
 
-        EndDrawing();
-    }
+        EndDrawing();
+    }
 
-    for (int i = 0; i < totalEntidades; i++) {
-        free(vetorEntidades[i]);
-    }
+    for (int i = 0; i < totalEntidades; i++) {
+        free(vetorEntidades[i]);
+    }
 
-    CloseWindow();
+    CloseWindow();
 
-    return 0;
+    return 0;
 }
