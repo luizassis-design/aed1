@@ -1,13 +1,13 @@
 # Projeto: Busca Linear (Algoritmos e Estrutura de Dados I)
 
-## 🛠️ Dependências
+## Dependências
 Para compilar e executar este projeto, você precisará de:
 * **Compilador GCC** (com suporte a C99 ou superior).
 * **Biblioteca Gráfica Raylib** (configurada no ambiente MSYS2/MinGW no Windows).
 
 ---
 
-## 🚀 Instruções de Compilação e Execução
+## Instruções de Compilação e Execução
 
 No terminal do seu ambiente (ex: MSYS2 UCRT64 no Windows), navegue até a pasta do projeto e utilize os comandos abaixo:
 
